@@ -2,18 +2,26 @@
 -export([get_min/1, insert/2, merge/2, remove_min/1]).
 
 
-get_min(nil) ->
+get_min(Node) when is_atom(Node) ->
     nil;
 get_min({_rank, Value, Next_l, Next_r}) ->
     Value. 
  
-
-insert(nil, nil) ->
+ 
+insert(_, Heap) when is_atom(Heap), not Heap =:= nil ->
     nil;
+insert(nil, Heap) ->
+    Heap;
 insert(Value, Heap) ->
     merge({1, Value, nil, nil}, Heap).
 
 
+merge(Heap_i, Heap_j) when is_atom(Heap_i) ->
+    Heap_j;
+merge(Heap_i, Heap_j) when is_atom(Heap_j) ->
+    Heap_i;
+merge(Heap_i, Heap_j) when is_atom(Heap_i), is_atom(Heap_j)->
+    nil;
 merge(nil, Heap_j) ->
     Heap_j;
 merge(Heap_i, nil) ->
@@ -47,3 +55,78 @@ rank({R, _Value, _Left, _Right}) ->
 
 remove_min(nil) ->
     to_do.
+
+
+
+
+
+%%% Only include the eunit testing library and functions
+%%% in the compiled code if testing is 
+%%% being done.
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+ 
+get_min_test_()->
+	[?_assertEqual(nil, get_min(nil)),%happy path
+	?_assertEqual(17, get_min({1, 17, nil, nil})),%happy path
+	?_assertEqual(17, get_min({1, 17, {1, 4, nil, nil}, {1, 1, nil, nil}})),%happy path
+	?_assertEqual("Hello World", get_min({5, "Hello World", nil, nil})),%happy path
+	 %nasty thoughts start here
+	 ?_assertEqual(nil, get_min(helloworld))
+	].
+
+insert_test_()->
+	[?_assertEqual({1, 4, {1, 7, nil, nil}, nil}, insert(7, {1, 4, nil, nil})),%happy path
+	 ?_assertEqual({1, 1, {1, 10, nil, nil}, nil}, insert(1, {1, 10, nil, nil})),%happy path
+	 ?_assertEqual({1, 1, {1, 10, {1, 13, nil, nil}, nil}, nil}, insert(1, {1, 10, {1, 13, nil, nil}, nil})),%happy path
+	 ?_assertEqual({1, 1, {2, 10, {1, 13, nil, nil}, {1, 18, nil, nil}}, nil}, insert(1, {2, 10, {1, 13, nil, nil}, {1, 18, nil, nil}})),%happy path
+	 ?_assertEqual({2, 10, {1, 13, {1, 19, nil, nil}, nil}, {1, 18, nil, nil}}, insert(19, {2, 10, {1, 13, nil, nil}, {1, 18, nil, nil}})),%happy path
+	 ?_assertEqual({1, 7, nil, nil}, insert(7, nil)),%happy path
+	 ?_assertEqual(nil, insert(nil, nil)),%happy path
+	 %nasty thoughts start here
+	 ?_assertEqual(nil, insert(8, fake_tree)),
+	 ?_assertEqual({1, 2, {1, nil, nil, nil}, nil}, insert(nil, {1, 2, nil, nil}))
+	].
+
+merge_test_()->
+	[?_assertEqual({1, 2, {1, 4, nil, nil}, nil}, merge({1, 4, nil, nil}, {1, 2, nil, nil})),%happy path
+	 ?_assertEqual({1, 5, {1, 6, {1, 4}, nil}, nil}, merge({1, 5, nil, nil}, {1, 6, {1, 4, nil, nil}, nil})),%happy path
+	 ?_assertEqual({2, 4, {1, 5, nil, nil}, {1, 6, nil, nil}}, merge({1, 4, {1, 5, nil, nil}, nil}, {1, 6, nil, nil})),%happy path
+	 ?_assertEqual({1, 9, nil, nil}, merge({1, 9, nil, nil}, nil)),%happy path
+	 ?_assertEqual({1, 35, nil, nil}, merge(nil, {1, 35, nil, nil})),%happy path
+     %nasty thoughts start here
+	 ?_assertEqual({1, 67, nil, nil}, merge(hello_world, {1, 67, nil, nil})),
+	 ?_assertEqual(nil, merge(yes, no))
+	].
+
+% build_node_test_()->
+% 	[?_assertEqual(),%happy path
+% 	 ?_assertEqual(),%happy path
+% 	 ?_assertEqual(),%happy path
+% 	 ?_assertEqual(),%happy path
+% 	 %nasty thoughts start here
+% 	 ?_assertEqual(),
+% 	 ?_assertEqual()
+% 	].
+
+% rank_test_()->
+% 	[?_assertEqual(1, rank()),%happy path
+% 	 ?_assertEqual(),%happy path
+% 	 ?_assertEqual(),%happy path
+% 	 ?_assertEqual(),%happy path
+% 	 %nasty thoughts start here
+% 	 ?_assertEqual(),
+% 	 ?_assertEqual()
+% 	].
+
+% remove_min_test_()->
+% 	[?_assertEqual(),%happy path
+% 	 ?_assertEqual(),%happy path
+% 	 ?_assertEqual(),%happy path
+% 	 ?_assertEqual(),%happy path
+% 	 %nasty thoughts start here
+% 	 ?_assertEqual(),
+% 	 ?_assertEqual()
+% 	].
+
+-endif.
