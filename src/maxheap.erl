@@ -1,11 +1,11 @@
--module(heap).
--export([get_min/1, insert/2, merge/2, remove_min/1]).
+-module(maxheap).
+-export([get_max/1, insert/2, merge/2, remove_max/1]).
 
 
-get_min(Node) when is_atom(Node) ->
+get_max(Node) when is_atom(Node) ->
     nil;
-get_min({_rank, Value, Next_l, Next_r}) ->
-    Value. 
+get_max({_rank, Value, Next_l, Next_r}) ->
+    Value.
  
  
 insert(_, Heap) when is_atom(Heap), Heap =/= nil ->
@@ -15,6 +15,21 @@ insert(nil, Heap) ->
 insert(Value, Heap) ->
     merge({1, Value, nil, nil}, Heap).
 
+rank(nil) -> 0;
+rank(Node) when is_atom(Node) ->
+    no_node;
+rank({R, _Value, _Left, _Right}) ->
+    R.
+
+remove_max(nil) ->
+    nil;
+remove_max(Heap) when is_atom(Heap) ->
+    no_heap;
+remove_max({_Rank, _Value, Left, Right}) ->
+    merge(Left, Right).
+
+
+% CHANGES START HERE
 merge(Heap_i, Heap_j) when is_atom(Heap_i), is_atom(Heap_j)->
     nil;
 merge(Heap_i, Heap_j) when is_atom(Heap_i) ->
@@ -25,7 +40,7 @@ merge(Heap_i, Heap_j) ->
     {I_rank, I_value, IL_sub, IR_sub} = Heap_i,
     {J_rank, J_value, JL_sub, JR_sub} = Heap_j,
     if
-        I_value =< J_value ->
+        I_value >= J_value ->
             build_node({I_rank, I_value, IL_sub, (merge(IR_sub, Heap_j))});
         true ->
             build_node({J_rank, J_value, (merge(Heap_i, JL_sub)), JR_sub})
@@ -36,24 +51,11 @@ build_node({_Rank, Value, L_heap, R_heap}) ->
     L_rank = rank(L_heap),
     R_rank = rank(R_heap),
     if
-      L_rank >= R_rank ->
+      L_rank =< R_rank ->
         {rank(R_heap) + 1, Value, L_heap, R_heap};
       true ->
         {rank(L_heap) + 1, Value, R_heap, L_heap}
     end.
-
-rank(nil) -> 0;
-rank(Node) when is_atom(Node) ->
-    no_node;
-rank({R, _Value, _Left, _Right}) ->
-    R.
-
-remove_min(nil) ->
-    nil;
-remove_min(Heap) when is_atom(Heap) ->
-    no_heap;
-remove_min({_Rank, _Value, Left, Right}) ->
-    merge(Left, Right).
 
 
 %%% Only include the eunit testing library and functions
